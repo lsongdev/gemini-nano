@@ -1,0 +1,28 @@
+{
+  "name": "Gemini Nano",
+  "short_name": "⚡️",
+  "description": "Gemini Nano",
+  "id": "?id=gemini-nano",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000",
+  "background_color": "#efefef",
+  "icons": [
+    {
+      "src": "icon-x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "AI",
+    "education"
+  ]
+}
