@@ -59,10 +59,10 @@ const App = () => {
         )
       )
     ),
-    h('form', { className: 'flex', onSubmit: handleSubmit }, [
+    h('form', { className: 'input-group', onSubmit: handleSubmit }, [
       h('input', {
         value: prompt,
-        className: 'input',
+        className: 'input input-block',
         placeholder: 'Enter something...',
         onInput: e => setPrompt(e.target.value),
       }),
