@@ -9,6 +9,7 @@
   <meta name="author" content="Lsong">
   <meta name="theme-color" content="#ffffff">
   <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Gemini Nano">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -60,13 +61,22 @@
         </p>
       </section>
 
-      <section id="app"></section>
+      <section id="app">
+        <h2>Gemini Nano</h2>
+        <ul id="messages" class="messages"></ul>
+        <form id="form" class="input-group width-full">
+          <input type="text" id="user" placeholder="Send a message..." class="input"required>
+          <button type="submit" class="button">Send</button>
+        </form>
+        <p id="status"></p>
+        <div class="copyright">Based on <a href="#">gemini-nano</a></div>
+      </section>
 
       <hr />
       <section class="subscribe">
         <h2>Subscribe</h2>
         <p>Join our occasional newsletter for product launches, availability, job openings, and news:</p>
-        <form action="https://formspree.io/song940@gmail.com" method="post">
+        <form action="https://formspree.io/song940@gmail.com" method="post" class="input-group width-full">
           <input class="input" type="email" id="email" name="email" required placeholder="email address">
           <button class="button" type="submit">Submit</button>
         </form>

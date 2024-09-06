@@ -1,78 +1,47 @@
 import { ready } from 'https://lsong.org/scripts/dom.js';
+import { query } from 'https://lsong.org/scripts/query.js';
 import { parse } from 'https://lsong.org/scripts/marked.js';
-import { h, render, useState, useEffect, useRef } from 'https://lsong.org/scripts/react/index.js';
 
+// DOM Elements
+let form, userInput, messageList;
 
+// Helper Functions
+function createMessageElement(role, content) {
+  const messageElement = document.createElement('li');
+  messageElement.className = `message-role-${role}`;
+  messageElement.innerHTML = parse(content);
+  return messageElement;
+}
 
-const Message = ({ message }) => {
-  const previewRef = useRef(null);
-  useEffect(() => {
-    if (previewRef.current) {
-      previewRef.current.innerHTML = parse(message.content);
-    }
-  }, [message]);
-  return h('div', { className: `preview message-role-${message.role}` },
-    h('div', { ref: previewRef, className: 'message-content' })
-  );
-};
+async function appendMessage(role, content) {
+  const messageElement = createMessageElement(role, content);
+  messageList.appendChild(messageElement);
+  return messageElement;
+}
 
-const App = () => {
-  const [prompt, setPrompt] = useState('');
-  const [messages, setMessages] = useState([]);
-  const sendMessage = async content => {
-    const userMessage = {
-      role: 'user',
-      content,
-    };
-    const available = await ai.canCreateTextSession();
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setMessages(prevMessages => [...prevMessages, {
-      role: 'assistant',
-      content: available ? '...' : `Sorry, I'm not available right now.`,
-    }]);
-    const session = await ai.createTextSession();
-    const responseStream = session.promptStreaming(prompt);
+// Main Function
+ready(async () => {
+  // Initialize DOM elements
+  form = document.getElementById('form');
+  userInput = document.getElementById('user');
+  messageList = document.getElementById('messages');
+  const status = document.getElementById('status');
+  const capabilities = await ai.assistant.capabilities();
+  console.log("capabilities", capabilities);
+  const bot = await ai.assistant.create();
+  // console.log(bot);
+
+  // Set up event listeners
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const userMessage = userInput.value;
+    appendMessage('user', userMessage);
+    const botMessage = await appendMessage('assistant', '...');
+    const responseStream = bot.promptStreaming(userMessage);
     for await (const chunk of responseStream) {
-      setMessages(prevMessages => {
-        const updatedMessages = [...prevMessages];
-        updatedMessages[updatedMessages.length - 1] = {
-          role: 'assistant',
-          content: parse(chunk),
-        };
-        return updatedMessages;
-      });
+      botMessage.innerHTML = parse(chunk);
     }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    await sendMessage(prompt);
-    setPrompt('');
-  };
-
-  return h('div', null, [
-    h('h2', null, 'Gemini Nano'),
-    h('ul', { className: 'messages' },
-      messages.map((message, index) =>
-        h('li', { className: `message-role-${message.role}`, key: index },
-          h(Message, { message })
-        )
-      )
-    ),
-    h('form', { className: 'input-group', onSubmit: handleSubmit }, [
-      h('input', {
-        value: prompt,
-        className: 'input input-block',
-        placeholder: 'Enter something...',
-        onInput: e => setPrompt(e.target.value),
-      }),
-      h('button', { className: 'button button-primary', type: 'submit' }, 'Send'),
-    ]),
-    h('p', { className: 'copyright' }, `Based on Gemini Nano.`)
-  ]);
-};
-
-ready(() => {
-  const app = document.getElementById('app');
-  render(h(App), app);
+    userInput.value = '';
+    status.textContent = `tokens: ${bot.tokensSoFar}/${bot.maxTokens}, available: ${bot.tokensLeft}`;
+  });
 });
