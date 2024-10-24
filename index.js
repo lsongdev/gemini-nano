@@ -1,9 +1,8 @@
-import { ready } from 'https://lsong.org/scripts/dom.js';
-import { query } from 'https://lsong.org/scripts/query.js';
+import { ready } from 'https://lsong.org/scripts/dom/index.js';
 import { parse } from 'https://lsong.org/scripts/marked.js';
 
 // DOM Elements
-let form, userInput, messageList;
+let bot, form, userInput, messageList, statusElement;
 
 // Helper Functions
 function createMessageElement(role, content) {
@@ -19,17 +18,29 @@ async function appendMessage(role, content) {
   return messageElement;
 }
 
+const assistant = ai.languageModel;
+const capabilities = await assistant.capabilities();
+
 // Main Function
 ready(async () => {
   // Initialize DOM elements
   form = document.getElementById('form');
   userInput = document.getElementById('user');
   messageList = document.getElementById('messages');
-  const status = document.getElementById('status');
-  const capabilities = await ai.assistant.capabilities();
-  console.log("capabilities", capabilities);
-  const bot = await ai.assistant.create();
-  // console.log(bot);
+  statusElement = document.getElementById('status');
+
+  switch (capabilities.available) {
+    case 'no':
+      appendMessage('assistant', 'Sorry, I don\'t have access to your capabilities.');
+      break;
+    case 'readily':
+      // create session
+      bot = await assistant.create();
+      appendMessage('assistant', 'I\'m ready to help you.');
+      break;
+    default:
+      throw new Error(`unknown capabilities: ${capabilities.available}`);
+  }
 
   // Set up event listeners
   form.addEventListener('submit', async e => {
@@ -37,11 +48,15 @@ ready(async () => {
     const userMessage = userInput.value;
     appendMessage('user', userMessage);
     const botMessage = await appendMessage('assistant', '...');
-    const responseStream = bot.promptStreaming(userMessage);
-    for await (const chunk of responseStream) {
-      botMessage.innerHTML = parse(chunk);
+    try {
+      const responseStream = bot.promptStreaming(userMessage);
+      for await (const chunk of responseStream) {
+        botMessage.innerHTML = parse(chunk);
+      }
+    } catch (e) {
+      botMessage.innerHTML = parse(e.toString());
     }
     userInput.value = '';
-    status.textContent = `tokens: ${bot.tokensSoFar}/${bot.maxTokens}, available: ${bot.tokensLeft}`;
+    statusElement.textContent = `tokens: ${bot.tokensSoFar}/${bot.maxTokens}, available: ${bot.tokensLeft}`;
   });
 });
